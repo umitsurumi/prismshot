@@ -73,7 +73,8 @@ export function ContestContent({ locale }: ContestContentProps) {
           </div>
           <div className={styles.currentVisual}>
             <ResponsivePhoto
-              photo={currentContest.visual}
+              photo={currentContest.visual.asset}
+              focalPoint={currentContest.visual.focalPoint}
               alt={getPhotoAlt(currentContest.visual, locale)}
               sizes="(max-width: 820px) 100vw, 48vw"
             />

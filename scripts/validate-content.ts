@@ -1,23 +1,15 @@
 import { access } from "node:fs/promises";
 import path from "node:path";
 
-import sharp from "sharp";
-
 import { socialPlatforms, teamMembers } from "../content/about";
 import { currentContest, contestChampions } from "../content/contests";
 import { activities, calendarEvents, configuredEventMonths } from "../content/events";
 import { galleryPhotos } from "../content/gallery";
-import { photoAssets, responsivePhotoWidths } from "../content/photo-assets";
+import { photoManifest } from "../content/photo-manifest.generated";
+import { assertAllPhotosReferenced } from "../lib/photo-content";
 import { releaseReadiness } from "../content/readiness";
 import { homeBackgroundSrc, homeSocialLinks, siteContent } from "../content/site";
-import { getPhotoDimensions } from "../content/types";
-import type { PhotoAsset } from "../content/types";
 import { pageKeys } from "../lib/i18n";
-import { getResponsivePhotoVariants } from "../lib/responsive-photo-variants";
-import {
-  findPhotoSourceFiles,
-  resolvePhotoSourcePath,
-} from "./photo-source-files";
 
 const errors: string[] = [];
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -50,30 +42,12 @@ for (const champion of contestChampions) {
 }
 
 const activityPhotos = activities.flatMap((activity) => activity.photos);
-requireUnique(
-  [...activityPhotos, ...galleryPhotos].map((photo) => photo.id),
-  "photographs across events and gallery",
-);
-
-const registeredAssets: readonly PhotoAsset[] = Object.values(photoAssets);
-requireUnique(registeredAssets.map((asset) => asset.key), "photo assets");
-requireUnique(registeredAssets.map((asset) => asset.source), "photo asset sources");
-
-const referencedAssets = [
-  ...activityPhotos.map((photo) => ({ label: photo.id, asset: photo.asset })),
-  ...galleryPhotos.map((photo) => ({ label: photo.id, asset: photo.asset })),
-  { label: `contest-${currentContest.issue}`, asset: currentContest.visual },
-  ...contestChampions.map((champion) => ({ label: champion.id, asset: champion.image })),
-];
-const registeredAssetsByKey = new Map<string, (typeof registeredAssets)[number]>(
-  registeredAssets.map((asset) => [asset.key, asset]),
-);
-
-for (const reference of referencedAssets) {
-  if (registeredAssetsByKey.get(reference.asset.key) !== reference.asset) {
-    errors.push(`${reference.label} must reference a registered photo asset`);
-  }
-}
+assertAllPhotosReferenced(photoManifest, [
+  ...activityPhotos,
+  ...galleryPhotos,
+  ...contestChampions,
+  currentContest.visual,
+]);
 
 for (const activity of activities) {
   if (activity.photos.length < 1 || activity.photos.length > 6) {
@@ -146,88 +120,6 @@ if (homeBackgroundSrc) {
       await access(path.join(process.cwd(), "public", homeBackgroundSrc));
     } catch {
       errors.push(`home background is missing: ${homeBackgroundSrc}`);
-    }
-  }
-}
-
-const sourceDirectory = path.join(process.cwd(), "assets/source/photos");
-const generatedDirectory = path.join(process.cwd(), "public/generated/photos");
-const sourceFiles = await findPhotoSourceFiles(sourceDirectory);
-const configuredAssetSources = new Set<string>(
-  registeredAssets.map((asset) => asset.source),
-);
-
-for (const sourceFile of sourceFiles) {
-  if (!configuredAssetSources.has(sourceFile.relativePath)) {
-    errors.push(`${sourceFile.relativePath} is not registered in content/photo-assets.ts`);
-  }
-}
-
-for (const asset of registeredAssets) {
-  let sourcePath: string;
-  try {
-    sourcePath = resolvePhotoSourcePath(sourceDirectory, asset.source);
-  } catch (error) {
-    errors.push(`${asset.key} has an invalid source path: ${(error as Error).message}`);
-    continue;
-  }
-
-  const sourceFile = sourceFiles.find(
-    (candidate) => candidate.relativePath === asset.source,
-  );
-  if (!sourceFile) {
-    errors.push(`${asset.key} source is missing: ${asset.source}`);
-    continue;
-  }
-
-  const sourceMetadata = await sharp(sourcePath).metadata();
-  const orientedSize = sourceMetadata.autoOrient ?? sourceMetadata;
-  const dimensions = getPhotoDimensions(asset);
-
-  if (orientedSize.width !== dimensions.width || orientedSize.height !== dimensions.height) {
-    errors.push(
-      `${asset.key} generated dimensions are stale; run npm run images:build`,
-    );
-  }
-  if (asset.alt && (!asset.alt.zh || !asset.alt.en)) {
-    errors.push(`${asset.key} has incomplete bilingual alt text`);
-  }
-  if (
-    asset.focalPoint &&
-    (asset.focalPoint.x < 0 ||
-      asset.focalPoint.x > 100 ||
-      asset.focalPoint.y < 0 ||
-      asset.focalPoint.y > 100)
-  ) {
-    errors.push(`${asset.key} focal point must use percentages from 0 to 100`);
-  }
-
-  const variants = getResponsivePhotoVariants(
-    dimensions.width,
-    responsivePhotoWidths,
-  );
-  for (const variant of variants) {
-    const expectedHeight = Math.round(
-      (dimensions.height / dimensions.width) * variant.outputWidth,
-    );
-    for (const format of ["webp", "avif"] as const) {
-      const outputPath = path.join(
-        generatedDirectory,
-        `${asset.key}-${variant.fileWidth}.${format}`,
-      );
-      try {
-        const outputMetadata = await sharp(outputPath).metadata();
-        if (
-          outputMetadata.width !== variant.outputWidth ||
-          outputMetadata.height !== expectedHeight
-        ) {
-          errors.push(
-            `${asset.key}-${variant.fileWidth}.${format} is ${outputMetadata.width}×${outputMetadata.height}; expected ${variant.outputWidth}×${expectedHeight}`,
-          );
-        }
-      } catch {
-        errors.push(`${asset.key} is missing its ${variant.outputWidth}px ${format.toUpperCase()} variant`);
-      }
     }
   }
 }

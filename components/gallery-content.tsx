@@ -64,8 +64,8 @@ export function GalleryContent({ locale }: GalleryContentProps) {
               style={{ aspectRatio: `${dimensions.width} / ${dimensions.height}` }}
             >
               <ResponsivePhoto
-                photo={photo.asset}
-                alt={getPhotoAlt(photo.asset, locale)}
+                photo={photo.asset} focalPoint={photo.focalPoint}
+                alt={getPhotoAlt(photo, locale)}
                 sizes="(max-width: 560px) 100vw, (max-width: 820px) 50vw, 33vw"
               />
               {(title || metadata) && (

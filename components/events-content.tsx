@@ -292,9 +292,9 @@ export function EventsContent({ locale }: EventsContentProps) {
                           className={styles.mainPhoto}
                           type="button"
                           aria-label={getPhotoLabel(mainPhoto, locale)}
-                          onClick={() => setLightboxIndex(allPhotos.findIndex((photo) => photo.id === mainPhoto.id))}
+                          onClick={() => setLightboxIndex(allPhotos.indexOf(mainPhoto))}
                         >
-                          <ResponsivePhoto photo={mainPhoto.asset} alt={getPhotoAlt(mainPhoto.asset, locale)} sizes="(max-width: 820px) 100vw, 43vw" />
+                          <ResponsivePhoto photo={mainPhoto.asset} focalPoint={mainPhoto.focalPoint} alt={getPhotoAlt(mainPhoto, locale)} sizes="(max-width: 820px) 100vw, 43vw" />
                         </button>
                         {thumbnails.length > 0 && (
                           <div className={styles.thumbnailGrid} data-count={thumbnails.length}>
@@ -303,9 +303,9 @@ export function EventsContent({ locale }: EventsContentProps) {
                                 key={photo.id}
                                 type="button"
                                 aria-label={getPhotoLabel(photo, locale)}
-                                onClick={() => setLightboxIndex(allPhotos.findIndex((item) => item.id === photo.id))}
+                                onClick={() => setLightboxIndex(allPhotos.indexOf(photo))}
                               >
-                                <ResponsivePhoto photo={photo.asset} alt={getPhotoAlt(photo.asset, locale)} sizes="(max-width: 820px) 36vw, 16vw" />
+                                <ResponsivePhoto photo={photo.asset} focalPoint={photo.focalPoint} alt={getPhotoAlt(photo, locale)} sizes="(max-width: 820px) 36vw, 16vw" />
                               </button>
                             ))}
                           </div>

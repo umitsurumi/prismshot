@@ -4,16 +4,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "npm run images:build",
+    "predev": "npm run content:validate && npm run images:build",
     "dev": "next dev",
-    "prebuild": "npm run images:build && npm run content:validate",
+    "prebuild": "npm run content:validate && npm run images:build",
     "build": "next build",
     "postbuild": "tsx scripts/finalize-static-export.ts",
     "images:build": "tsx scripts/process-images.ts",
     "content:validate": "tsx scripts/validate-content.ts",
     "test:smoke": "node scripts/smoke-browser.mjs",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "photos:manifest": "tsx scripts/generate-photo-manifest.ts",
+    "precontent:validate": "npm run photos:manifest",
+    "prelint": "npm run photos:manifest",
+    "pretypecheck": "npm run photos:manifest",
+    "test:photos": "npm run photos:manifest && tsx --test scripts/photo-pipeline.test.ts",
+    "test:photos:browser": "tsx scripts/smoke-photos.mjs"
   },
   "dependencies": {
     "next": "16.3.3",

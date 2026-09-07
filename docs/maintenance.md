@@ -8,12 +8,11 @@
 - `content/events.ts`：活动日历、活动介绍与活动照片。
 - `content/contests.ts`：当期主题赛、状态边界、规则和历届冠军。
 - `content/gallery.ts`：画廊照片与分页文案。
-- `content/photo-assets.ts`：摄影源图路径、稳定 key、可选尺寸断言、可选替代文本和可选焦点。
-- `content/photo-dimensions.generated.js`：图片构建自动生成且被 Git 忽略的真实尺寸清单，不要手工编辑；仓库只保留同名 `.d.ts` 类型声明。
+- `content/photo-manifest.generated.ts`：自动发现的照片 ID、路径、尺寸、文件名日期和精确引用类型；由命令生成且被 Git 忽略，不手工编辑。
 - `content/about.ts`：关于文案、五个平台账号与外链、赞助说明和团队成员。
 - `content/readiness.ts`：正式发布占位门禁。
 
-站点文案以及照片中已经提供的标题、说明或替代文本都要同时提供 `zh` 和 `en`。照片元数据可以整个省略；明确需要表达“未知”时使用 `unknown`，主动匿名使用 `anonymous`。
+站点文案以及照片中已经提供的标题、说明或替代文本都要同时提供 `zh` 和 `en`。照片元数据可以整个省略；作者明确未知时使用 `unknown`，主动匿名使用 `anonymous`。未知日期直接省略。
 
 ## 首页背景
 
@@ -23,35 +22,52 @@
 
 横图和竖图使用同一套流程，不需要把原图预先裁成统一比例。建议保留社团提供的最大可用版本，但不设 1600 像素的硬门槛。常见的 3840×2160 横图可直接使用；相机方向信息纠正后为竖图时，脚本会自动读取为 2160×3840。脚本只按照 EXIF 校正相机方向，不会根据长宽猜测方向，也不会为了统一版式擅自旋转照片。
 
-1. 将 JPG、JPEG 或 PNG 原图放入 `assets/source/photos/`。可以按用途建立任意层级的子目录，例如 `events/photo-class/`、`contests/` 和 `gallery/`；目录名和文件名建议稳定、无空格。
-2. 在 `content/photo-assets.ts` 登记全局唯一的稳定 `key` 和相对于照片根目录的 `source`。`source` 使用正斜杠，不允许绝对路径、反斜杠或 `..`；不同目录可以出现同名文件，但每个完整 `source` 只能登记一次。
-3. 在 `content/events.ts`、`content/gallery.ts` 或 `content/contests.ts` 中通过 `asset: photoAssets.<记录名>` 引用。不要手写 `/generated/` 路径，也不要把 `-1600.webp` 当作内容配置。
-4. 运行 `npm run images:build`；准备提交时运行 `npm run build`。
+1. 将 JPG、JPEG 或 PNG 放入 `assets/source/photos/<project>/.../<filename>.<ext>`。第一层项目目录必需，例如 `events/`、`gallery/`、`contests/`，未来可增加其他项目。
+2. 项目名和文件 basename 只允许小写英文字母、数字和连字符。同项目 basename 必须唯一，不能用不同扩展名或中间目录区分同名照片。
+3. 在内容文件中显式选图，并填写无法推导的元数据。放入目录不会自动发布；未被任何内容引用的源图会使内容校验失败，待筛选照片应放在照片根目录之外。
+4. 运行 `npm run images:build` 更新类型提示和图片；准备提交时运行 `npm run build`。
 
-资产登记示例：
+资产 ID 为“项目名 + 连字符 + basename”，例如 `events/class/photo-coaching-2026-09-04-0.png` 对应 `events-photo-coaching-2026-09-04-0`。中间目录不参与 ID，移动这些目录不会改变引用。修改项目名或 basename 会改变 ID；同名换扩展名不改变 ID，但必须移走旧文件。拼接后的 ID 也必须全局唯一：`a-b/c.png` 与 `a/b-c.png` 会被判定冲突。符号链接不允许用作照片来源。
+
+文件名中以连字符或首尾界定的严格、有效 `YYYY-MM-DD` 自动成为日期；多图序号保留在 ID 中，不属于日期。有推导日期时禁止再配置 `date`，即使数值相同；没有可识别日期时可手填有效 ISO 日期，也可省略。非法日历日期和多个日期片段报错，不猜测。缺少前导零的 `2026-1-17` 不会推导，应改为 `2026-01-17`。
+
+照片配置示例（填入现有集合解析函数的数组）：
 
 ```ts
-photoClass01: {
-  key: "event-photo-class-01",
-  source: "events/photo-class/01.jpg",
+// gallery：日期从文件名推导
+{ asset: "gallery-2026-08-28", author: "PrismShot" }
+
+// events：旧文件名无日期，按需手填
+{
+  asset: "events-photo-coaching-01",
+  date: "2026-08-14",
   alt: { zh: "可选的照片描述", en: "Optional photograph description" },
   focalPoint: { x: 50, y: 42 },
 }
 ```
 
-其中 `alt` 和 `focalPoint` 都可以省略。没有 `alt` 时，页面使用当前语言的通用“摄影作品”标签，保证图片控件仍有可访问名称；获取到准确描述后再补充更好。
-
-通常不要填写 `width` 和 `height`。图片构建会读取原图信息、应用 EXIF 方向后生成 `content/photo-dimensions.generated.js`，页面始终使用这份真实尺寸。如果需要人工核对某张图，可以同时填写 `width` 和 `height` 作为可选断言；两者必须成对出现，且与自动读取结果不一致时构建会报错。它们不会覆盖真实尺寸。
-
-脚本会递归扫描照片根目录、校正 EXIF 方向，但不会复制 EXIF 元数据；每张源图以 480、960、1600 像素作为目标档位生成 WebP 与 AVIF，但绝不放大。原图窄于某个目标档位时，该档使用真实原图宽度；多个档位落到相同宽度时自动去重。生成文件继续使用扁平且稳定的 `/generated/photos/<key>-<档位>.<format>` 路径，`srcset` 标注真实输出宽度，移动源图目录不会改变访客 URL。网页通过 `<picture>` 和 `sizes` 选择合适版本，不直接发布源图。构建会拒绝未登记的源图、重复或不安全的 `source`、重复的 `key`、不完整或错误的可选尺寸断言，以及缺失或尺寸错误的生成变体。
+作者逐张填写、可选、无默认值。标题、说明、替代文本必须中英文成对提供。未取得 alt 时显示通用“摄影作品 / Photograph”。`focalPoint` 是当前内容位置的裁切焦点，x/y 使用 0–100 的有限数值；它不改变原图或灯箱的完整比例展示。尺寸由原图自动读取，不提供手工断言或覆盖。
 
 ### 各页面图片配置
 
-- 活动：在对应活动的 `photos` 中逐张填写稳定 `id` 和 `asset`；每项活动允许 1–6 张。`title`、`caption`、`author`、`date` 均可选。
-- 画廊：`galleryPhotos` 的每一项都是独立记录，最低只需要稳定 `id` 和 `asset`。已知日期按新到旧排列；省略日期或填写 `unknown` 的照片统一放在最后。
-- 主题赛：`currentContest.visual` 配置当期主视觉；`contestChampions` 至少登记稳定 `id`、期数 `issue` 和 `image`，冠军主题和作者可选。冠军列表统一使用 4:5 裁切预览，可通过资产的 `focalPoint` 调整主体位置；点击后会在共用大图查看器中按原始比例完整显示。
+- 活动：在 `activityInputs` 对应活动的 `photos` 数组中显式列出 `asset`，每项活动 1–6 张，保留配置顺序。
+- 画廊：在 `resolvePhotos([...], "gallery", true)` 数组中列出 `asset`。自动按最终日期倒序；同日保持配置顺序，无日期排最后并保持相对顺序。
+- 历届冠军：在 `resolveChampions([...])` 中填写正整数 `issue`，例如 `{ issue: 13, theme: { zh: "失控", en: "Out of Control" }, author: "0-Nova-0" }`。自动关联 `contests/issue13.*` 并按期号倒序；不再填写重复 id/image。主题和作者可选，照片日期有值时在灯箱显示，与比赛赛程分开。
+- 当期主题赛：主视觉保持显式配置，例如 `resolvePhoto({ asset: "contests-issue13" }, "current contest visual")`；不按当期期号猜测。冠军卡片保持 4:5 裁切，灯箱显示完整原图。
 
-可选照片字段缺失时，对应标题、说明或元数据行不会显示，也不会阻止构建。省略表示“没有拿到这项资料”；填写 `unknown` 会明确显示“未知 / Unknown”；填写 `anonymous` 会显示“匿名 / Anonymous”。照片的真实宽高由图片构建统一生成，活动、画廊和主题赛不要重复填写。
+普通内容 ID 默认等于资产 ID，只有需要独立标识时才填 `id`。同一资产可以跨活动或页面复用，每个位置可独立填写署名、说明和焦点；同一 gallery 或同一活动的 photos 内不允许重复资产，换一个 id 也不能绕过检查。
+
+### 生成命令与缓存
+
+`photos:manifest` 仅扫描源文件并读取尺寸，不编码图片。`lint`、`typecheck`、`content:validate` 会自动先生成 manifest；内容校验检查引用、孤立照片、日期和内容规则，不要求已生成图片变体。`images:build` 自动准备 manifest、编码图片并验证产物。`dev` 和 `build` 会先完成内容与图片准备。首次克隆必须取回 Git LFS 实体，不能仅有指针文件。
+
+开发服务器启动后新增、改名或替换源图，执行 `npm run images:build` 刷新；当前没有后台源图扫描器。普通内容配置更新由 Next 开发服务器监听。
+
+图片按 480、960、1600 目标档位生成 WebP/AVIF，绝不放大，重复实际宽度去重；文件名保留档位，srcset 使用真实宽度。路径为 `/generated/photos/<asset-id>-<档位>.<format>`。图像编码仅应用 EXIF 方向，不复制 EXIF 信息。
+
+manifest、响应式图片和 `.photo-cache/` 都不提交。缓存根据源内容及编码参数摘要失效，同名换图即使保留旧时间戳也会重建。构建完成后清理照片生成目录中的陈旧命名变体，不删除源图。照片 URL 稳定，部署头要求浏览器重新验证缓存；Next 带哈希的静态资源仍使用长期缓存。
+
+验证命令：`npm run test:photos` 覆盖生成与解析规则；`npm run build && npm run test:photos:browser` 覆盖中英文桌面/手机照片加载、srcset 和灯箱。浏览器检查需要 Chromium，默认 `/usr/bin/chromium`，可通过 `CHROMIUM_PATH` 指定。
 
 ## Cloudflare Pages 图片构建
 
@@ -62,7 +78,7 @@ Build command: npm run build
 Build output directory: out
 ```
 
-构建日志必须包含 `[images] ensured ... responsive files`。部署后至少抽查一个 `/generated/photos/*.avif` 或 `.webp` 地址返回 `200`；若页面正常但这些地址返回 `404`，优先检查构建命令是否仍为预设的 `npx next build`，然后重新部署。
+构建日志必须包含 `[images] verified ... variants`。部署后至少抽查一个 `/generated/photos/*.avif` 或 `.webp` 地址返回 `200`；若页面正常但这些地址返回 `404`，优先检查构建命令是否仍为预设的 `npx next build`，然后重新部署。
 
 ## 社交链接与二维码
 

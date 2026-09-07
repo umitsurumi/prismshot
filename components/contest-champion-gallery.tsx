@@ -28,11 +28,11 @@ function toViewerItem(champion: ContestChampion): PhotoViewerItem {
     : undefined;
 
   return {
-    id: champion.id,
-    asset: champion.image,
-    title: champion.theme,
+    ...champion,
+    title: champion.title,
     details: [
       { zh: `第 ${champion.issue} 期`, en: `Issue ${champion.issue}` },
+      ...(champion.date ? [{ zh: champion.date, en: champion.date }] : []),
       ...(author
         ? [{ zh: `摄影 · ${author.zh}`, en: `Photography · ${author.en}` }]
         : []),
@@ -62,12 +62,13 @@ export function ContestChampionGallery({
                 type="button"
                 aria-label={champion.theme
                   ? localize(champion.theme, locale)
-                  : getPhotoAlt(champion.image, locale)}
+                  : getPhotoAlt(champion, locale)}
                 onClick={() => setLightboxIndex(index)}
               >
                 <ResponsivePhoto
                   photo={champion.image}
-                  alt={getPhotoAlt(champion.image, locale)}
+                  focalPoint={champion.focalPoint}
+                  alt={getPhotoAlt(champion, locale)}
                   sizes="(max-width: 560px) 100vw, (max-width: 820px) 50vw, 33vw"
                 />
               </button>

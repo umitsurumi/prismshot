@@ -7,5 +7,5 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
-/generated/*
-  Cache-Control: public, max-age=31536000, immutable
+/generated/photos/*
+  Cache-Control: public, max-age=0, must-revalidate

@@ -46,7 +46,9 @@ export async function findPhotoSourceFiles(
         : entry.name;
       const absolutePath = path.join(absoluteDirectory, entry.name);
 
-      if (entry.isDirectory()) {
+      if (entry.isSymbolicLink()) {
+        throw new Error(`${relativePath}: symbolic links are not supported in photo sources`);
+      } else if (entry.isDirectory()) {
         await walk(absolutePath, relativePath);
       } else if (entry.isFile() && supportedPhotoSourcePattern.test(entry.name)) {
         files.push({ absolutePath, relativePath });

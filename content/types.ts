@@ -1,6 +1,6 @@
 import type { Locale } from "@/lib/i18n";
 
-import { photoDimensions } from "./photo-dimensions.generated";
+import type { PhotoAssetId } from "./photo-manifest.generated";
 
 export interface LocalizedText {
   zh: string;
@@ -8,36 +8,33 @@ export interface LocalizedText {
 }
 
 export interface PhotoAsset {
-  key: string;
-  source: string;
-  width?: number;
-  height?: number;
-  alt?: LocalizedText;
-  focalPoint?: {
-    x: number;
-    y: number;
-  };
+  readonly id: string;
+  readonly source: string;
+  readonly width: number;
+  readonly height: number;
+  readonly date?: string;
 }
 
-export interface PhotoDimensions {
-  width: number;
-  height: number;
-}
-
-export interface PhotoContent {
-  id: string;
-  asset: PhotoAsset;
+export interface PhotoMetadata {
   author?: string;
   date?: string;
   title?: LocalizedText;
   caption?: LocalizedText;
+  alt?: LocalizedText;
+  focalPoint?: { x: number; y: number };
 }
 
-export interface PhotoViewerItem {
+export interface PhotoInput extends PhotoMetadata {
+  asset: PhotoAssetId;
+  id?: string;
+}
+
+export interface PhotoContent extends PhotoMetadata {
   id: string;
   asset: PhotoAsset;
-  title?: LocalizedText;
-  caption?: LocalizedText;
+}
+
+export interface PhotoViewerItem extends PhotoContent {
   details?: readonly LocalizedText[];
 }
 
@@ -49,10 +46,7 @@ function localizePhotoMetadata(value: string): LocalizedText {
 
 export function toPhotoViewerItem(photo: PhotoContent): PhotoViewerItem {
   return {
-    id: photo.id,
-    asset: photo.asset,
-    title: photo.title,
-    caption: photo.caption,
+    ...photo,
     details: [photo.author, photo.date]
       .filter((value): value is string => Boolean(value))
       .map(localizePhotoMetadata),
@@ -63,7 +57,7 @@ export function localize(value: LocalizedText, locale: Locale): string {
   return value[locale];
 }
 
-export function getPhotoAlt(asset: PhotoAsset, locale: Locale): string {
+export function getPhotoAlt(asset: Pick<PhotoMetadata, "alt">, locale: Locale): string {
   return asset.alt
     ? localize(asset.alt, locale)
     : locale === "zh"
@@ -71,20 +65,14 @@ export function getPhotoAlt(asset: PhotoAsset, locale: Locale): string {
       : "Photograph";
 }
 
-export function getPhotoDimensions(asset: Pick<PhotoAsset, "key">): PhotoDimensions {
-  const dimensions = (photoDimensions as Record<string, PhotoDimensions>)[asset.key];
-  if (!dimensions) {
-    throw new Error(
-      `Photo dimensions are missing for ${asset.key}; run npm run images:build`,
-    );
-  }
-  return dimensions;
+export function getPhotoDimensions(asset: PhotoAsset): { width: number; height: number } {
+  return { width: asset.width, height: asset.height };
 }
 
 export function getPhotoLabel(photo: PhotoContent, locale: Locale): string {
   return photo.title
     ? localize(photo.title, locale)
-    : getPhotoAlt(photo.asset, locale);
+    : getPhotoAlt(photo, locale);
 }
 
 export function getPhotoMetadataLabel(

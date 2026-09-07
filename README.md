@@ -37,12 +37,16 @@ npm install
 npm run dev
 npm run content:validate
 npm run images:build
+npm run photos:manifest
+npm run test:photos
 npm run lint
 npm run typecheck
 npm run build
 ```
 
-`npm run dev` 会先生成本地响应式图片。`npm run build` 会先校验内容并生成多档 WebP/AVIF，然后按 `next.config.ts` 的静态导出配置生成 `out/`。
+先执行 `git lfs pull` 取回源照片实体。`npm run dev` 会先校验内容并生成本地响应式图片。`npm run build` 会先校验内容并生成多档 WebP/AVIF，然后按 `next.config.ts` 的静态导出配置生成 `out/`。
+
+照片资产清单自动生成，不需要维护 `photo-assets.ts` 或尺寸文件。lint/typecheck/content:validate 自动准备 manifest；开发期间变更源图后运行 `npm run images:build`。完整构建后可用 `npm run test:photos:browser` 检查中英文照片页面（需要 Chromium）。
 
 一周年摄影赛默认不参与构建。需要同时启用中英文页面、导航入口和 sitemap 条目时，使用 `PRISMSHOT_ANNIVERSARY=1 npm run build`；取消该变量后重新构建即可关闭。必须通过 `npm run build` 构建，构建后的收尾校验会保证开关状态与静态产物一致。
 

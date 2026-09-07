@@ -1,14 +1,15 @@
 import Image from "next/image";
 
-import { getPhotoSource, responsivePhotoWidths } from "@/content/photo-assets";
+import { getPhotoSource, responsivePhotoWidths } from "@/lib/photo-variants";
 import { getPhotoDimensions } from "@/content/types";
-import type { PhotoAsset } from "@/content/types";
+import type { PhotoAsset, PhotoMetadata } from "@/content/types";
 import { getResponsivePhotoVariants } from "@/lib/responsive-photo-variants";
 
 import styles from "./responsive-photo.module.css";
 
 interface ResponsivePhotoProps {
   photo: PhotoAsset;
+  focalPoint?: PhotoMetadata["focalPoint"];
   alt: string;
   sizes: string;
   imageClassName?: string;
@@ -19,6 +20,7 @@ export function ResponsivePhoto({
   alt,
   sizes,
   imageClassName,
+  focalPoint,
 }: ResponsivePhotoProps) {
   const variants = getResponsivePhotoVariants(
     getPhotoDimensions(photo).width,
@@ -43,8 +45,8 @@ export function ResponsivePhoto({
         alt={alt}
         fill
         sizes={sizes}
-        style={photo.focalPoint
-          ? { objectPosition: `${photo.focalPoint.x}% ${photo.focalPoint.y}%` }
+        style={focalPoint
+          ? { objectPosition: `${focalPoint.x}% ${focalPoint.y}%` }
           : undefined}
         unoptimized
       />

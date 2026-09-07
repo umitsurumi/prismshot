@@ -1,7 +1,7 @@
 import type { Locale } from "@/lib/i18n";
 
-import { photoAssets } from "./photo-assets";
-import type { LocalizedText, PhotoContent } from "./types";
+import { resolvePhotos } from "../lib/photo-content";
+import type { LocalizedText, PhotoContent, PhotoInput } from "./types";
 
 export type EventKind = "gather" | "partner" | "class";
 
@@ -87,7 +87,7 @@ export const calendarEvents: readonly CalendarEvent[] = [
     },
 ];
 
-export const activities: readonly ActivityContent[] = [
+const activityInputs: readonly (Omit<ActivityContent, "photos"> & { photos: readonly PhotoInput[] })[] = [
     {
         id: "together-one-frame",
         name: { zh: "相聚一镜", en: "Together in One Frame" },
@@ -108,26 +108,22 @@ export const activities: readonly ActivityContent[] = [
         ],
         photos: [
             {
-                id: "event-gather-01",
-                asset: photoAssets.togetherOneFrame01,
+                asset: "events-together-one-frame-01",
                 author: "PrismShot",
                 date: "2026-08-28",
             },
             {
-                id: "event-gather-02",
-                asset: photoAssets.togetherOneFrame02,
+                asset: "events-together-one-frame-02",
                 author: "PrismShot",
                 date: "2026-08-07",
             },
             {
-                id: "event-gather-03",
-                asset: photoAssets.togetherOneFrame03,
+                asset: "events-together-one-frame-03",
                 author: "anonymous",
                 date: "2026-02-27",
             },
             {
-                id: "event-gather-04",
-                asset: photoAssets.togetherOneFrame04,
+                asset: "events-together-one-frame-04",
                 author: "PrismShot",
                 date: "2026-06-05",
             },
@@ -168,26 +164,22 @@ export const activities: readonly ActivityContent[] = [
         ],
         photos: [
             {
-                id: "event-partner-01",
-                asset: photoAssets.framePartners01,
+                asset: "events-frame-partners-01",
                 author: "~KY39~ X TsurumiUmi",
                 date: "2026-07-31",
             },
             {
-                id: "event-partner-02",
-                asset: photoAssets.framePartners02,
+                asset: "events-frame-partners-02",
                 author: "樱井绮萝萝 X 小夜",
                 date: "2026-08-21",
             },
             {
-                id: "event-partner-03",
-                asset: photoAssets.framePartners03,
+                asset: "events-frame-partners-03",
                 author: "Guiltfix X 小鹭",
                 date: "2026-08-21",
             },
             {
-                id: "event-partner-04",
-                asset: photoAssets.framePartners04,
+                asset: "events-frame-partners-04",
                 author: "SenSundy白",
                 date: "2026-08-21",
             },
@@ -217,30 +209,31 @@ export const activities: readonly ActivityContent[] = [
         ],
         photos: [
             {
-                id: "event-class-01",
-                asset: photoAssets.photoCoaching01,
+                asset: "events-photo-coaching-01",
                 date: "2026-08-14",
             },
             {
-                id: "event-class-02",
-                asset: photoAssets.photoCoaching02,
+                asset: "events-photo-coaching-02",
                 date: "2026-08-14",
             },
             {
-                id: "event-class-03",
-                asset: photoAssets.photoCoaching03,
+                asset: "events-photo-coaching-03",
                 author: "SenSundy白",
                 date: "2026-07-03",
             },
             {
-                id: "event-class-04",
-                asset: photoAssets.photoCoaching04,
+                asset: "events-photo-coaching-04",
                 author: "~KY39~",
                 date: "2026-05-22",
             },
         ],
     },
 ];
+
+export const activities: readonly ActivityContent[] = activityInputs.map((activity) => ({
+    ...activity,
+    photos: resolvePhotos(activity.photos, activity.id),
+}));
 
 export const eventPageCopy: Record<
     Locale,

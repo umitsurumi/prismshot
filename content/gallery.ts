@@ -1,106 +1,73 @@
 import type { Locale } from "@/lib/i18n";
 
-import { photoAssets } from "./photo-assets";
-import type { PhotoContent } from "./types";
+import { resolvePhotos } from "../lib/photo-content";
 
-export const galleryPhotos: readonly PhotoContent[] = [
+export const galleryPhotos = resolvePhotos([
     {
-        id: "gallery-2026-08-28",
-        asset: photoAssets.gallery16,
+        asset: "gallery-2026-08-28",
         author: "PrismShot",
-        date: "2026-08-28",
     },
     {
-        id: "gallery-2026-08-07",
-        asset: photoAssets.gallery15,
+        asset: "gallery-2026-08-07",
         author: "PrismShot",
-        date: "2026-08-07",
     },
     {
-        id: "gallery-2026-07-18",
-        asset: photoAssets.gallery14,
+        asset: "gallery-2026-07-18",
         author: "PrismShot",
-        date: "2026-07-18",
     },
     {
-        id: "gallery-2026-07-11",
-        asset: photoAssets.gallery13,
+        asset: "gallery-2026-07-11",
         author: "PrismShot",
-        date: "2026-07-11",
     },
     {
-        id: "gallery-2026-06-26",
-        asset: photoAssets.gallery12,
+        asset: "gallery-2026-06-26",
         author: "PrismShot",
-        date: "2026-06-26",
     },
     {
-        id: "gallery-2026-06-05",
-        asset: photoAssets.gallery11,
+        asset: "gallery-2026-06-05",
         author: "PrismShot",
-        date: "2026-06-05",
     },
     {
-        id: "gallery-2026-05-02",
-        asset: photoAssets.gallery10,
+        asset: "gallery-2026-05-02",
         author: "PrismShot",
-        date: "2026-05-02",
     },
     {
-        id: "gallery-2026-04-10",
-        asset: photoAssets.gallery9,
+        asset: "gallery-2026-04-10",
         author: "PrismShot",
-        date: "2026-04-10",
     },
     {
-        id: "gallery-2026-03-20-1",
-        asset: photoAssets.gallery8,
+        asset: "gallery-2026-03-20-1",
         author: "PrismShot",
-        date: "2026-03-20",
     },
     {
-        id: "gallery-2026-03-20-0",
-        asset: photoAssets.gallery7,
+        asset: "gallery-2026-03-20-0",
         author: "PrismShot",
-        date: "2026-03-20",
     },
     {
-        id: "gallery-2026-02-27",
-        asset: photoAssets.gallery6,
+        asset: "gallery-2026-02-27",
         author: "PrismShot",
-        date: "2026-02-27",
     },
     {
-        id: "gallery-2026-02-07-1",
-        asset: photoAssets.gallery5,
+        asset: "gallery-2026-02-07-1",
         author: "PrismShot",
-        date: "2026-02-07",
     },
     {
-        id: "gallery-2026-02-07-0",
-        asset: photoAssets.gallery4,
+        asset: "gallery-2026-02-07-0",
         author: "PrismShot",
-        date: "2026-02-07",
     },
     {
-        id: "gallery-2026-01-17",
-        asset: photoAssets.gallery3,
+        asset: "gallery-2026-01-17",
         author: "PrismShot",
-        date: "2026-01-17",
     },
     {
-        id: "gallery-2025-12-13-1",
-        asset: photoAssets.gallery2,
+        asset: "gallery-2025-12-13-1",
         author: "PrismShot",
-        date: "2025-12-13",
     },
     {
-        id: "gallery-2025-12-13-0",
-        asset: photoAssets.gallery1,
+        asset: "gallery-2025-12-13-0",
         author: "PrismShot",
-        date: "2025-12-13",
     },
-];
+], "gallery", true);
 
 export const galleryPageCopy: Record<
     Locale,

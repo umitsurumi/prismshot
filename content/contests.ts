@@ -1,7 +1,8 @@
 import type { Locale } from "@/lib/i18n";
 
-import { photoAssets } from "./photo-assets";
-import type { LocalizedText, PhotoAsset } from "./types";
+import { resolvePhoto, resolveChampions } from "../lib/photo-content";
+import type { ResolvedChampion } from "../lib/photo-content";
+import type { LocalizedText, PhotoContent } from "./types";
 
 export type ContestStatus = "upcoming" | "submitting" | "voting" | "ended";
 
@@ -10,7 +11,7 @@ export interface ContestRound {
     theme: LocalizedText;
     subtitle: LocalizedText;
     summary: LocalizedText;
-    visual: PhotoAsset;
+    visual: PhotoContent;
     submissionStart: string;
     voteStart: string;
     voteEnd: string;
@@ -20,13 +21,7 @@ export interface ContestRound {
     votingUrl?: string;
 }
 
-export interface ContestChampion {
-    id: string;
-    issue: string;
-    theme?: LocalizedText;
-    author?: string;
-    image: PhotoAsset;
-}
+export type ContestChampion = ResolvedChampion;
 
 export const currentContest: ContestRound = {
     issue: "14",
@@ -36,7 +31,7 @@ export const currentContest: ContestRound = {
         zh: "看不见，不代表不存在。风没有轮廓，却能改变光影；没有颜色，却能改变一整个画面。本期主题 「风」，我们邀请你寻找一种属于自己的表达——如果风无法被看见，你会如何把它拍下来？",
         en: "Invisibility does not mean absence. Wind has no outline, yet it can reshape light and shadow; it has no colour, yet it can transform an entire frame. For this round's theme, “Wind,” we invite you to find an expression of your own—if wind cannot be seen, how would you photograph it?",
     },
-    visual: photoAssets.issue13,
+    visual: resolvePhoto({ asset: "contests-issue13" }, "current contest visual"),
     submissionStart: "2026-08-29T00:00:00+08:00",
     voteStart: "2026-09-11T00:00:00+08:00",
     voteEnd: "2026-09-16T00:00:00+08:00",
@@ -44,92 +39,68 @@ export const currentContest: ContestRound = {
     statusOverride: null,
 };
 
-export const contestChampions: readonly ContestChampion[] = [
+export const contestChampions = resolveChampions([
     {
-        id: "issue-13",
-        issue: "13",
+        issue: 13,
         theme: { zh: "失控", en: "Out of Control" },
         author: "0-Nova-0",
-        image: photoAssets.issue13,
     },
     {
-        id: "issue-12",
-        issue: "12",
+        issue: 12,
         theme: { zh: "安全距离", en: "Safe Distance" },
         author: "糸云恋Koishi",
-        image: photoAssets.issue12,
     },
     {
-        id: "issue-11",
-        issue: "11",
+        issue: 11,
         theme: { zh: "未拆封的告白", en: "An Unopened Confession" },
         author: "SenSundy白",
-        image: photoAssets.issue11,
     },
     {
-        id: "issue-10",
-        issue: "10",
+        issue: 10,
         theme: { zh: "黑暗面", en: "Dark Side" },
         author: "Null_零",
-        image: photoAssets.issue10,
     },
     {
-        id: "issue-09",
-        issue: "09",
+        issue: 9,
         theme: { zh: "季节", en: "Seasons" },
         author: "~KY39~",
-        image: photoAssets.issue9,
     },
     {
-        id: "issue-08",
-        issue: "08",
+        issue: 8,
         theme: { zh: "与孤独共生", en: "Living with Solitude" },
         author: "YuTsuKi",
-        image: photoAssets.issue8,
     },
     {
-        id: "issue-07",
-        issue: "07",
+        issue: 7,
         theme: { zh: "生活", en: "Life" },
         author: "YuTsuKi",
-        image: photoAssets.issue7,
     },
     {
-        id: "issue-06",
-        issue: "06",
+        issue: 6,
         theme: { zh: "重生", en: "Rebirth" },
         author: "LinxxxMeng",
-        image: photoAssets.issue6,
     },
     {
-        id: "issue-05",
-        issue: "05",
+        issue: 5,
         theme: { zh: "背叛", en: "Betrayal" },
         author: "LuKiJ",
-        image: photoAssets.issue5,
     },
     {
-        id: "issue-04",
-        issue: "04",
+        issue: 4,
         theme: { zh: "反差感", en: "Juxtaposition" },
         author: "远雾lynn",
-        image: photoAssets.issue4,
     },
     {
-        id: "issue-03",
-        issue: "03",
+        issue: 3,
         theme: { zh: "美味", en: "Delicious" },
         author: "~KY39~",
-        image: photoAssets.issue3,
     },
     {
-        id: "issue-02",
-        issue: "02",
+        issue: 2,
         theme: { zh: "慵懒", en: "Languor" },
         author: "xzi",
-        image: photoAssets.issue2,
     },
-];
+]);
 
 export const contestPageCopy: Record<
     Locale,

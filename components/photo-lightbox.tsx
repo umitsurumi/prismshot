@@ -117,8 +117,8 @@ export function PhotoLightbox({
           <ResponsivePhoto
             key={photo.id}
             imageClassName={styles.image}
-            photo={photo.asset}
-            alt={getPhotoAlt(photo.asset, locale)}
+            photo={photo.asset} focalPoint={photo.focalPoint}
+            alt={getPhotoAlt(photo, locale)}
             sizes="(max-width: 820px) 100vw, calc(100vw - 380px)"
           />
         </div>
